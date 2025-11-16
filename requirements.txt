@@ -1,0 +1,2 @@
+flask==0.12.2   # intentionally old/vulnerable example
+requests==2.18.0
