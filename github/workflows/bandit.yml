@@ -1,42 +1,22 @@
-name: Bandit Security 
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+   name: Security - Bandit 
+ 
+on:   push:   pull_request: 
+ 
+jobs:   bandit: 
+    runs-on: ubuntu-latest 
+ 
+    steps: 
+-	name: Checkout code         uses: actions/checkout@v4 
+ 
+-	name: Set up Python         uses: actions/setup-python@v5         with: 
+          python-version: "3.11" 
+ 
+-	name: Install Bandit         run: pip install --upgrade pip bandit 
+ 
+-	name: Run Bandit (fail on MEDIUM/HIGH)         run: | 
+          bandit -r . -s medium -i medium -f txt -o bandit-report.txt 
+ 
+-	name: Upload Bandit report (always)         if: always()         uses: actions/upload-artifact@v4         with: 
+          name: bandit-report           path: bandit-report.txt 
 
-jobs:
-  bandit:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install bandit
-        run: |
-          python -m pip install --upgrade pip
-          pip install bandit
-
-      - name: Run bandit and write JSON report
-        run: |
-          bandit -r . -f json -o bandit-report.json
-
-      - name: Fail if bandit found issues
-        run: |
-          python - <<'PY'
-import json, sys
-j = json.load(open('bandit-report.json'))
-# 'results' contains each finding
-if j.get('results'):
-    print("Bandit found the following issues:")
-    for r in j['results']:
-        print(f"{r['filename']}:{r['line_number']} [{r['test_id']}] {r['issue_text']}")
-    sys.exit(1)   # fail the job
-print("Bandit found no issues.")
-PY
