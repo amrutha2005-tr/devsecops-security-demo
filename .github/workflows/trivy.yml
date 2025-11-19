@@ -1,9 +1,10 @@
-name: Trivy Docker Scan
+name: Trivy Scan
+
 on:
-  workflow_dispatch:
   push:
   pull_request:
-  
+  workflow_dispatch:
+
 jobs:
   trivy:
     runs-on: ubuntu-latest
@@ -15,19 +16,19 @@ jobs:
       - name: Build Docker image
         run: docker build -t insecure-image .
 
-      - name: Run Trivy scan and save report
+      - name: Run Trivy and create report
         run: |
+          mkdir -p trivy-output
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
-            -v ${{ github.workspace }}:/root/workspace \
+            -v ${{ github.workspace }}/trivy-output:/root/trivy-output \
             aquasec/trivy:latest image \
             --format json \
-            --output /root/workspace/trivy-report.json \
-            insecure-image
-        continue-on-error: true
+            --output /root/trivy-output/report.json \
+            insecure-image || true
 
       - name: Upload Trivy report
         uses: actions/upload-artifact@v4
         with:
           name: trivy-report
-          path: trivy-report.json
+          path: trivy-output/report.json
